@@ -1,0 +1,1 @@
+import Future=require("./future");

@@ -1,0 +1,23 @@
+{
+  "name": "future",
+  "version": "1.0.0",
+  "description": "implementation for promiseA+",
+  "main": "dist/future.js",
+  "scripts": {
+    "test": "promises-aplus-tests test/test.js",
+    "dev": "webpack --mode development",
+    "prod": "webpack --mode production"
+  },
+  "types":"types/index.d.ts",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^10.9.4",
+    "clean-webpack-plugin": "^0.1.19",
+    "promises-aplus-tests": "^2.1.2",
+    "ts-loader": "^5.0.0",
+    "typescript": "^3.0.3",
+    "webpack": "^4.17.2",
+    "webpack-cli": "^3.1.0"
+  }
+}
