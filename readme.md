@@ -1,4 +1,4 @@
-![hope.js](https://github.com/yangyuhe/hope/blob/master/logo.svg)
+# ![hope.js](https://github.com/yangyuhe/hope/blob/master/logo.svg =200x200)
 Hope.js is a implementation for Promise/A+ specification which pass [Promises/A+ Compliance Test Suite](https://github.com/promises-aplus/promises-tests).
 
 ## install 
