@@ -1,9 +1,10 @@
+# ![hope.js](https://github.com/yangyuhe/hope/blob/master/logo.svg)
 Hope.js is a implementation for Promise/A+ specification which pass [Promises/A+ Compliance Test Suite](https://github.com/promises-aplus/promises-tests).
 
 ## install 
 npm install @yangyuhe/hope --save
 ## use
-1. with typescript
+1. with typescript
 ```typescript
 import {Hope} from "hope";
 let hope=new Hope((resolve,reject)=>{
