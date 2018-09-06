@@ -1,4 +1,4 @@
-export declare class Future {
+export declare class Hope {
     private successRes;
     private failRes;
     private resolveCallback;
@@ -11,12 +11,13 @@ export declare class Future {
     private onParentResolve;
     private onParentReject;
     private onReceiveChildPromise;
-    then(successCb?: (res: any) => any, failCb?: (err: any) => any): Future;
+    then(successCb?: (res: any) => any, failCb?: (err: any) => any): Hope;
     private handleReturnValue;
-    catch(failCb: any): Future;
-    finally(finalCb: any): Future;
-    static allResolved(promises: Future[]): Future;
-    static anyResolve(promises: Future[]): Future;
-    static reject(err: any): Future;
-    static resolve(res: any): Future;
+    catch(failCb: any): Hope;
+    finally(finalCb: any): Hope;
+    static all(promises: Hope[]): Hope;
+    static any(promises: Hope[]): Hope;
+    static race(promises: Hope[]): Hope;
+    static reject(err: any): Hope;
+    static resolve(res: any): Hope;
 }

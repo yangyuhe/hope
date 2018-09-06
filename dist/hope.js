@@ -91,15 +91,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/future.ts");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/hope.ts");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ "./src/future.ts":
-/*!***********************!*\
-  !*** ./src/future.ts ***!
-  \***********************/
+/***/ "./src/hope.ts":
+/*!*********************!*\
+  !*** ./src/hope.ts ***!
+  \*********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -107,7 +107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const nexttick_1 = __webpack_require__(/*! ./nexttick */ "./src/nexttick.ts");
-class Future {
+class Hope {
     constructor(callback) {
         this.successRes = null;
         this.failRes = null;
@@ -187,7 +187,7 @@ class Future {
         this.children.push(childPromise);
     }
     then(successCb, failCb) {
-        var childPromise = new Future(null);
+        var childPromise = new Hope(null);
         childPromise.resolveCallback = typeof successCb === "function" ? successCb : (res) => { return res; };
         childPromise.rejectCallback = typeof failCb === "function" ? failCb : (err) => { throw err; };
         this.onReceiveChildPromise(childPromise);
@@ -202,7 +202,7 @@ class Future {
             this.reject(new TypeError("circle promise"));
             return;
         }
-        if (callbackValue instanceof Future) {
+        if (callbackValue instanceof Hope) {
             callbackValue.then(res => {
                 this.resolve(res);
             }, reason => {
@@ -253,7 +253,7 @@ class Future {
         }
     }
     catch(failCb) {
-        var childPromise = new Future(null);
+        var childPromise = new Hope(null);
         childPromise.resolveCallback = (res) => { return res; };
         childPromise.rejectCallback = typeof failCb === "function" ? failCb : (err) => { throw err; };
         this.onReceiveChildPromise(childPromise);
@@ -262,16 +262,16 @@ class Future {
     finally(finalCb) {
         if (typeof finalCb !== "function")
             throw new Error("finally callback can not be empty and should be a function");
-        var childPromise = new Future(null);
+        var childPromise = new Hope(null);
         childPromise.resolveCallback = () => { finalCb(); };
         childPromise.rejectCallback = (err) => { finalCb(); throw err; };
         this.onReceiveChildPromise(childPromise);
         return childPromise;
     }
-    static allResolved(promises) {
+    static all(promises) {
         let result = [];
         let state = "pending";
-        let promise = new Future((resolve, reject) => {
+        let promise = new Hope((resolve, reject) => {
             promises.forEach((promise, index) => {
                 promise.then(res => {
                     if (state === "pending") {
@@ -292,10 +292,10 @@ class Future {
         });
         return promise;
     }
-    static anyResolve(promises) {
+    static any(promises) {
         let errors = [];
         let state = "pending";
-        let promise = new Future((resolve, reject) => {
+        let promise = new Hope((resolve, reject) => {
             promises.forEach((promise, index) => {
                 promise.then(res => {
                     if (state === "pending") {
@@ -316,18 +316,37 @@ class Future {
         });
         return promise;
     }
+    static race(promises) {
+        let state = "pending";
+        let promise = new Hope((resolve, reject) => {
+            promises.forEach((promise, index) => {
+                promise.then(res => {
+                    if (state === "pending") {
+                        state = "resolved";
+                        resolve(res);
+                    }
+                }, err => {
+                    if (state === "pending") {
+                        state = "rejected";
+                        reject(err);
+                    }
+                });
+            });
+        });
+        return promise;
+    }
     static reject(err) {
-        return new Future((resolve, reject) => {
+        return new Hope((resolve, reject) => {
             reject(err);
         });
     }
     static resolve(res) {
-        return new Future((resolve, reject) => {
+        return new Hope((resolve, reject) => {
             resolve(res);
         });
     }
 }
-exports.Future = Future;
+exports.Hope = Hope;
 
 
 /***/ }),
@@ -381,4 +400,4 @@ function forBrowser() {
 
 /******/ });
 });
-//# sourceMappingURL=future.js.map
+//# sourceMappingURL=hope.js.map

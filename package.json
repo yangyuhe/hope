@@ -1,8 +1,8 @@
 {
-  "name": "future",
+  "name": "hope",
   "version": "1.0.0",
   "description": "implementation for promiseA+",
-  "main": "dist/future.js",
+  "main": "dist/hope.js",
   "scripts": {
     "test": "promises-aplus-tests test/test.js",
     "dev": "webpack --mode development",

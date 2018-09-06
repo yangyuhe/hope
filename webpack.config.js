@@ -4,7 +4,7 @@ const Clean = require("clean-webpack-plugin")
 
 module.exports = {
     entry: {
-        future:"./src/future.ts"
+        hope:"./src/hope.ts"
     },
     resolve: {
         extensions: ['.ts', '.js']

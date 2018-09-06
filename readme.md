@@ -1,36 +1,43 @@
-Future.js is a implementation for Promise/A+ specification which pass [Promises/A+ Compliance Test Suite](https://github.com/promises-aplus/promises-tests).
+Hope.js is a implementation for Promise/A+ specification which pass [Promises/A+ Compliance Test Suite](https://github.com/promises-aplus/promises-tests).
 
-## 安装 
-npm install @yangyuhe/future --save
-## 使用
-1. 在typescript中
+## install 
+npm install @yangyuhe/hope --save
+## use
+1. with typescript
 ```typescript
-import {Future} from "future";
-let future=new Future((resolve,reject)=>{
+import {Hope} from "hope";
+let hope=new Hope((resolve,reject)=>{
     resolve("success");
 }).then(res=>{
-    console.log(res);//输出"success"
+    console.log(res);//output "success"
 });
 
 ```
-2.在nodejs中
+2. with commonjs
 ```javascript
-let Future=require("future").Future;
-let future=new Future((resolve,reject)=>{
+let Hope=require("hope").Hope;
+let hope=new Hope((resolve,reject)=>{
     resolve("success");
 }).then(res=>{
-    console.log(res);//输出"success"
+    console.log(res);//output "success"
 });
 ```
-3.在浏览器中  
-引入script脚本
+3. in browser  
+import script of hope.js
 ```html
-<script src="...path/future.js"></script>
+<script src="...path/hope.js"></script>
 <script>
-    let future=new Future((resolve,reject)=>{
+    let hope=new Hope((resolve,reject)=>{
         resolve("success");
     }).then(res=>{
-        console.log(res);//输出"success"
+        console.log(res);//output "success"
     });
 </script>
 ```
+## API
+Hope.js 's API is the same as normal Promise's api in Browser except with one extra api:  
+```javascript
+Hope.any(hope:Hope[]):Hope
+```
+> the **any** method will resolve if any of hopes resolved and will reject if all of hopes rejected.
+when resolve, the parameter will be the first resolved value and when reject, then parameter will be a array which contains all reasons rejected in order of hopes passed in.
