@@ -1,12 +1,17 @@
 import { NextTick } from "./nexttick";
-export class Hope {
-    private successRes: any = null;
+
+export class Hope<T> {
+    //当前promise的成功结果
+    private successRes: T|Hope<T> = null;
+    //当前promise的失败结果
     private failRes: any = null;
-    private resolveCallback: any = null;
-    private rejectCallback: any = null;
-    private children: Hope[] = [];
+    //当父promise成功时，当前promise的处理函数，第一个promise是没有这个的
+    private resolveProcessing: ((t:T|Hope<T>)=>T|Hope<T>|void) = null;
+    //当父promise失败时，当前promise的处理函数，第一个promise是没有这个的
+    private rejectProcessing: any = null;
+    private children: Hope<T>[] = [];
     private state: "pending" | "resolved" | "rejected" = "pending";
-    constructor(callback: (resolve: any, reject: any) => void) {
+    constructor(callback: (resolve: ((res:T|Hope<T>)=>void), reject: any) => void) {
         if (callback != null) {
             try {
                 callback(this.handleReturnValue.bind(this, "resolve"), this.handleReturnValue.bind(this, "reject"));
@@ -17,8 +22,8 @@ export class Hope {
             }
         }
     }
-
-    private resolve(data) {
+    /**当前promise成功 */
+    private resolve(data:T|Hope<T>) {
         if (this.state == "pending") {
             this.state = "resolved";
 
@@ -30,6 +35,7 @@ export class Hope {
             });
         }
     }
+    /**当前promise失败 */
     private reject(reason) {
         if (this.state == "pending") {
             this.state = "rejected";
@@ -45,10 +51,11 @@ export class Hope {
             });
         }
     }
-    private onParentResolve(data) {
-        if (this.resolveCallback != null) {
+    /**当父promise成功时 */
+    private onParentResolve(data:T|Hope<T>) {
+        if (this.resolveProcessing != null) {
             try {
-                let res = this.resolveCallback.call(undefined, data);
+                let res:T|Hope<T> = this.resolveProcessing.call(undefined, data);
                 this.handleReturnValue("resolve", res);
             } catch (err) {
                 this.reject(err);
@@ -56,17 +63,19 @@ export class Hope {
         }
 
     }
+    /**当父promise失败时 */
     private onParentReject(reason) {
-        if (this.rejectCallback != null) {
+        if (this.rejectProcessing != null) {
             try {
-                let res = this.rejectCallback.call(undefined, reason);
+                let res = this.rejectProcessing.call(undefined, reason);
                 this.handleReturnValue("resolve", res);
             } catch (err) {
                 this.reject(err);
             }
         }
     }
-    private onReceiveChildPromise(childPromise: Hope) {
+    /**当增加一个子promise时 */
+    private onReceiveChildPromise(childPromise: Hope<T>) {
         if (this.state == "rejected") {
             NextTick(() => {
                 childPromise.onParentReject(this.failRes);
@@ -79,16 +88,17 @@ export class Hope {
         }
         this.children.push(childPromise);
     }
-
-    then(successCb?: (res: any) => any, failCb?: (err: any) => any) {
-        var childPromise = new Hope(null);
-        childPromise.resolveCallback = typeof successCb === "function" ? successCb : (res) => { return res };
-        childPromise.rejectCallback = typeof failCb === "function" ? failCb : (err) => { throw err };
+    /**then调用 */
+    then(successCb?: (res: T) => T|Hope<T>|void, failCb?: (err: any) => any) {
+        var childPromise = new Hope<T>(null);
+        childPromise.resolveProcessing = typeof successCb === "function" ? successCb : (res) => { return res };
+        childPromise.rejectProcessing = typeof failCb === "function" ? failCb : (err) => { throw err };
 
         this.onReceiveChildPromise(childPromise);
 
         return childPromise;
     }
+    /**根据处理函数返回的结果决定最终的状态和值并触发后续的子promise */
     private handleReturnValue(type: "resolve" | "reject", callbackValue: any) {
         if (type == "reject") {
             this.reject(callbackValue);
@@ -141,30 +151,30 @@ export class Hope {
             this.resolve(callbackValue);
         }
     }
-    catch(failCb) {
-        var childPromise = new Hope(null);
-        childPromise.resolveCallback = (res) => { return res };
-        childPromise.rejectCallback = typeof failCb === "function" ? failCb : (err) => { throw err };
+    catch(failCb:((err:any)=>void|any)) {
+        var childPromise = new Hope<T>(null);
+        childPromise.resolveProcessing = (res) => { return res };
+        childPromise.rejectProcessing = typeof failCb === "function" ? failCb : (err) => { throw err };
 
         this.onReceiveChildPromise(childPromise);
 
         return childPromise;
     }
-    finally(finalCb) {
+    finally(finalCb:(()=>T|Hope<T>)) {
         if (typeof finalCb !== "function")
             throw new Error("finally callback can not be empty and should be a function");
-        var childPromise = new Hope(null);
-        childPromise.resolveCallback = () => { finalCb() };
-        childPromise.rejectCallback = (err) => { finalCb(); throw err };
+        var childPromise = new Hope<T>(null);
+        childPromise.resolveProcessing = () => { return finalCb() };
+        childPromise.rejectProcessing = (err) => { finalCb(); throw err };
 
         this.onReceiveChildPromise(childPromise);
 
         return childPromise;
     }
-    static all(promises: Hope[]) {
-        let result: { index: number, res: any }[] = [];
+    static all<T>(promises: Hope<T>[]) {
+        let result: { index: number, res: T }[] = [];
         let state: "resolved" | "rejected" | "pending" = "pending";
-        let promise = new Hope((resolve, reject) => {
+        let promise = new Hope<T[]>((resolve, reject) => {
             promises.forEach((promise, index) => {
                 promise.then(res => {
                     if (state === "pending") {
@@ -185,10 +195,10 @@ export class Hope {
         });
         return promise;
     }
-    static any(promises: Hope[]) {
+    static any<T>(promises: Hope<T>[]) {
         let errors: { index: number, err: any }[] = [];
         let state: "resolved" | "rejected" | "pending" = "pending";
-        let promise = new Hope((resolve, reject) => {
+        let promise = new Hope<T>((resolve, reject) => {
             promises.forEach((promise, index) => {
                 promise.then(res => {
                     if (state === "pending") {
@@ -209,9 +219,9 @@ export class Hope {
         });
         return promise;
     }
-    static race(promises: Hope[]){
+    static race<T>(promises: Hope<T>[]){
         let state: "resolved" | "rejected" | "pending" = "pending";
-        let promise = new Hope((resolve, reject) => {
+        let promise = new Hope<T>((resolve, reject) => {
             promises.forEach((promise, index) => {
                 promise.then(res => {
                     if (state === "pending") {
@@ -229,12 +239,12 @@ export class Hope {
         return promise;
     }
     static reject(err: any) {
-        return new Hope((resolve, reject) => {
+        return new Hope<any>((resolve, reject) => {
             reject(err);
         });
     }
     static resolve(res: any) {
-        return new Hope((resolve, reject) => {
+        return new Hope<any>((resolve, reject) => {
             resolve(res);
         });
     }

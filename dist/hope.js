@@ -109,10 +109,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const nexttick_1 = __webpack_require__(/*! ./nexttick */ "./src/nexttick.ts");
 class Hope {
     constructor(callback) {
+        //当前promise的成功结果
         this.successRes = null;
+        //当前promise的失败结果
         this.failRes = null;
-        this.resolveCallback = null;
-        this.rejectCallback = null;
+        //当父promise成功时，当前promise的处理函数，第一个promise是没有这个的
+        this.resolveProcessing = null;
+        //当父promise失败时，当前promise的处理函数，第一个promise是没有这个的
+        this.rejectProcessing = null;
         this.children = [];
         this.state = "pending";
         if (callback != null) {
@@ -126,6 +130,7 @@ class Hope {
             }
         }
     }
+    /**当前promise成功 */
     resolve(data) {
         if (this.state == "pending") {
             this.state = "resolved";
@@ -137,6 +142,7 @@ class Hope {
             });
         }
     }
+    /**当前promise失败 */
     reject(reason) {
         if (this.state == "pending") {
             this.state = "rejected";
@@ -151,10 +157,11 @@ class Hope {
             });
         }
     }
+    /**当父promise成功时 */
     onParentResolve(data) {
-        if (this.resolveCallback != null) {
+        if (this.resolveProcessing != null) {
             try {
-                let res = this.resolveCallback.call(undefined, data);
+                let res = this.resolveProcessing.call(undefined, data);
                 this.handleReturnValue("resolve", res);
             }
             catch (err) {
@@ -162,10 +169,11 @@ class Hope {
             }
         }
     }
+    /**当父promise失败时 */
     onParentReject(reason) {
-        if (this.rejectCallback != null) {
+        if (this.rejectProcessing != null) {
             try {
-                let res = this.rejectCallback.call(undefined, reason);
+                let res = this.rejectProcessing.call(undefined, reason);
                 this.handleReturnValue("resolve", res);
             }
             catch (err) {
@@ -173,6 +181,7 @@ class Hope {
             }
         }
     }
+    /**当增加一个子promise时 */
     onReceiveChildPromise(childPromise) {
         if (this.state == "rejected") {
             nexttick_1.NextTick(() => {
@@ -186,13 +195,15 @@ class Hope {
         }
         this.children.push(childPromise);
     }
+    /**then调用 */
     then(successCb, failCb) {
         var childPromise = new Hope(null);
-        childPromise.resolveCallback = typeof successCb === "function" ? successCb : (res) => { return res; };
-        childPromise.rejectCallback = typeof failCb === "function" ? failCb : (err) => { throw err; };
+        childPromise.resolveProcessing = typeof successCb === "function" ? successCb : (res) => { return res; };
+        childPromise.rejectProcessing = typeof failCb === "function" ? failCb : (err) => { throw err; };
         this.onReceiveChildPromise(childPromise);
         return childPromise;
     }
+    /**根据处理函数返回的结果决定最终的状态和值并触发后续的子promise */
     handleReturnValue(type, callbackValue) {
         if (type == "reject") {
             this.reject(callbackValue);
@@ -254,8 +265,8 @@ class Hope {
     }
     catch(failCb) {
         var childPromise = new Hope(null);
-        childPromise.resolveCallback = (res) => { return res; };
-        childPromise.rejectCallback = typeof failCb === "function" ? failCb : (err) => { throw err; };
+        childPromise.resolveProcessing = (res) => { return res; };
+        childPromise.rejectProcessing = typeof failCb === "function" ? failCb : (err) => { throw err; };
         this.onReceiveChildPromise(childPromise);
         return childPromise;
     }
@@ -263,8 +274,8 @@ class Hope {
         if (typeof finalCb !== "function")
             throw new Error("finally callback can not be empty and should be a function");
         var childPromise = new Hope(null);
-        childPromise.resolveCallback = () => { finalCb(); };
-        childPromise.rejectCallback = (err) => { finalCb(); throw err; };
+        childPromise.resolveProcessing = () => { return finalCb(); };
+        childPromise.rejectProcessing = (err) => { finalCb(); throw err; };
         this.onReceiveChildPromise(childPromise);
         return childPromise;
     }
