@@ -5,7 +5,7 @@ export declare class Hope<T> {
     private rejectProcessing;
     private children;
     private state;
-    constructor(callback: (resolve: ((res: T | Hope<T>) => void), reject: any) => void);
+    constructor(callback: (resolve: ((res?: T | Hope<T>) => void), reject: any) => void);
     /**当前promise成功 */
     private resolve;
     /**当前promise失败 */

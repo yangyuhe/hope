@@ -11,7 +11,7 @@ export class Hope<T> {
     private rejectProcessing: any = null;
     private children: Hope<T>[] = [];
     private state: "pending" | "resolved" | "rejected" = "pending";
-    constructor(callback: (resolve: ((res:T|Hope<T>)=>void), reject: any) => void) {
+    constructor(callback: (resolve: ((res?:T|Hope<T>)=>void), reject: any) => void) {
         if (callback != null) {
             try {
                 callback(this.handleReturnValue.bind(this, "resolve"), this.handleReturnValue.bind(this, "reject"));
@@ -250,6 +250,4 @@ export class Hope<T> {
     }
 
 }
-
-
 

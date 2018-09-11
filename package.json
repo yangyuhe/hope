@@ -1,6 +1,6 @@
 {
   "name": "@yangyuhe/hope",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "implementation for promiseA+",
   "main": "dist/hope.js",
   "scripts": {
